@@ -1,4 +1,5 @@
 # Amazon_sales_Analysis_SQL_Project 
+![amazon_india_wide_image-3](https://github.com/Shivani9508/Amazon_sales_Analysis_SQL/assets/142001944/5a494f68-6063-4702-9ab9-8524e615c510)
 
 Welcome to the Amazon Sales Analysis project! In this project, we delve into analyzing sales
 data from Amazon to extract insights and trends that can help optimize sales strategies,
