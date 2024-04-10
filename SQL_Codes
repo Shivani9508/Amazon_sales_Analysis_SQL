@@ -1,0 +1,201 @@
+Q1. Find out the top 5 customers who made the highest profits.
+
+SELECT * FROM customers
+SELECT * FROM orders
+SELECT * FROM products
+
+- Top 5 customers ----from customer table 
+
+-Create new profit column ( sale-cogs)---- from order and product table
+
+
+SELECT c. customer_id,
+       SUM(o.sale -p.cogs) as Profit
+	   FROM customers c
+	   JOIN orders o ON o.customer_id = c.customer_id
+	   JOIN products p ON o.product_id = p.product_id 
+	   GROUP BY c.customer_id 
+	   ORDER BY Profit DESC
+	   LIMIT 5;
+	   
+	   
+	   
+	   
+
+2. Find out the average quantity ordered per category.
+
+SELECT * FROM orders
+
+
+      SELECT category,
+      AVG(quantity) as AVG_quantity
+      FROM orders 
+	  WHERE category IS NOT NULL
+      GROUP BY category
+	  
+	  
+	  
+3. Identify the top 5 products that have generated the highest revenue.
+
+-top 5 products
+- Revenue 
+
+SELECT * from orders
+SELECT * FROM products
+
+       SELECT  
+       p.product_id,
+	   p.product_name,
+       SUM (sale) as Revenue_generated
+	   FROM orders o 
+	   INNER JOIN products p
+	   ON o.product_id = p.product_id
+	   GROUP BY 1,2
+	   ORDER BY 3 DESC
+	   LIMIT 5;
+	   
+	   
+	   
+	   
+4. Determine the top 5 products whose revenue has decreased compared to the
+previous year.
+
+- TOP 5 products 
+- Revenue Decreased compared to previous Year 
+
+
+SELECT * from orders
+SELECT * FROM products
+
+WITH previous_year_revenue
+AS
+(
+    SELECT
+        product_id,
+        SUM(sale) AS previous_year_revenue
+    FROM orders
+    WHERE EXTRACT(YEAR FROM order_date) = EXTRACT(YEAR FROM CURRENT_DATE) - 1
+    GROUP BY product_id
+),
+current_year_revenue AS
+(
+    SELECT
+            product_id,
+            SUM(sale) AS current_year_revenue
+    FROM orders
+    WHERE EXTRACT(YEAR FROM order_date) = EXTRACT(YEAR FROM CURRENT_DATE)
+    GROUP BY product_id
+)
+SELECT
+    cr.product_id,
+    cr.current_year_revenue - pr.previous_year_revenue AS revenue_decrease
+FROM
+    current_year_revenue cr
+JOIN
+    previous_year_revenue pr
+ON cr.product_id = pr.product_id
+ORDER BY
+    revenue_decrease DESC
+LIMIT
+    5;
+
+
+5. Identify the highest profitable sub-category.
+
+SELECT * FROM orders
+SELECT * FROM products
+
+SELECT 
+       o.sub_category,
+       MAX(o.sale -p.cogs) as Profit
+	   FROM orders o
+	   INNER JOIN products p 
+	   ON o.product_id = p.product_id
+	   GROUP BY 1
+	   
+	   
+	   
+6. Find out the states with the highest total orders.
+
+-Total Orders
+-Highest State
+
+SELECT 
+       state,
+	   SUM (quantity) as total_orders
+	   FROM orders
+	   Group By 1
+	   ORDER BY total_orders DESC
+	   
+	   
+7. Determine the month with the highest number of orders.
+
+
+-- Month from order_date ---- getting it from orders
+-- totalorders 
+
+SELECT 
+	 EXTRACT(MONTH FROM  order_date) as Month,
+	  Count(quantity) as total_orders
+	  FROM orders
+	  GROUP BY EXTRACT(MONTH FROM  order_date)
+	  ORDER BY total_orders DESC
+	  LIMIT 1;
+	  
+	  
+	  
+8. Calculate the profit margin percentage for each sale (Profit divided by Sales).
+
+-- Profit (Sale_cogs)
+--Profit margin (Profit/sale)
+
+SELECT * FROM orders
+SELECT * FROM products
+
+SELECT
+    o.product_id,
+    o.sale,
+     (o.sale - p.cogs) / o.sale * 100 AS profit_margin_percentage
+     FROM orders o
+     INNER JOIN products p 
+     ON o.product_id = p.product_id;
+		 
+	  
+
+
+9. Calculate the percentage contribution of each sub-category.
+
+SELECT * FROM orders
+
+
+SELECT 
+    category,
+    sub_category,
+    SUM(sale) AS total_sales,
+    (SUM(sale) / (SELECT SUM(sale) FROM orders)) * 100 AS percentage_contribution
+FROM 
+    orders
+GROUP BY 
+    category, sub_category;
+	 
+     
+	 
+10.Identify top 2 category that has received maximum returns and their return %
+
+
+SELECT * FROM returns
+SELECT * FROM orders
+
+WITH return_summary AS (
+SELECT o.category, 
+       Count(r.return_id) as return_count,
+	   (COUNT (r.return_id)/COUNT(o.order_id))*100 as return_pct
+	   FROM orders o
+	   JOIN returns r
+	   ON o.order_id =r.order_id 
+	   GROUP BY o.category 
+	   ORDER BY return_count
+	   LIMIT 2
+	)
+SELECT category, return_count ,return_pct 
+FROM return_summary;
